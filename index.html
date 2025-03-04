@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Quiz Game</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA); /* Background gradient */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            box-sizing: border-box;
+            overflow: hidden; /* Hide overflow */
+        }
+        .container {
+            background: #fffacd; /* Sunflower theme container color */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute; /* Center the container */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1; /* Ensure container is above background */
+        }
+        h2 {
+            color: #ffda03; /* Sunflower yellow */
+            font-size: 1.5rem;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #ffda03; /* Sunflower yellow border */
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .btn {
+            background-color: #ffda03; /* Sunflower yellow */
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            margin: 5px 0; /* Add margin between buttons */
+            transition: transform 0.2s; /* Add animation */
+        }
+        .btn:hover {
+            background-color: #ffbf00; /* Darker sunflower yellow */
+            transform: scale(1.05); /* Scale up on hover */
+        }
+        .hidden {
+            display: none;
+        }
+        .cute-img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+        .question {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        .score-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        .timer {
+            font-size: 1.2rem;
+            color: #ffda03; /* Sunflower yellow */
+            margin-bottom: 15px;
+        }
+        .petal {
+            position: absolute;
+            background-color: #FFD700;
+            border-radius: 50% 0 50% 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            opacity: 0.9;
+            transform-origin: center;
+        }
+        #petal-container {
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+        }
+        /* Responsive styling */
+        @media (max-width: 600px) {
+            h2 {
+                font-size: 1.2rem;
+            }
+            .btn {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+    <script>
+        let questionIndex = 0;
+        let score = 0;
+        let loginAttempts = 0;
+        let timer;
+        const questions = [
+            {
+                question: "What is the capital of France?",
+                options: ["A) Berlin", "B) Madrid", "C) Paris", "D) Rome"],
+                answer: "C"
+            },
+            {
+                question: "What is 5 + 3?",
+                options: ["A) 6", "B) 7", "C) 8", "D) 9"],
+                answer: "C"
+            },
+            {
+                question: "What is the color of the sky?",
+                options: ["A) Blue", "B) Green", "C) Red", "D) Yellow"],
+                answer: "A"
+            },
+            {
+                question: "Who wrote 'Romeo and Juliet'?",
+                options: ["A) Charles Dickens", "B) William Shakespeare", "C) Jane Austen", "D) Mark Twain"],
+                answer: "B"
+            },
+            {
+                question: "Which animal is known as the King of the Jungle?",
+                options: ["A) Tiger", "B) Elephant", "C) Lion", "D) Bear"],
+                answer: "C"
+            },
+            {
+                question: "What is the largest planet in our solar system?",
+                options: ["A) Earth", "B) Jupiter", "C) Mars", "D) Saturn"],
+                answer: "B"
+            },
+            {
+                question: "What is the boiling point of water in Celsius?",
+                options: ["A) 90°C", "B) 100°C", "C) 110°C", "D) 120°C"],
+                answer: "B"
+            },
+            {
+                question: "Which element's symbol is 'O'?",
+                options: ["A) Oxygen", "B) Osmium", "C) Ozone", "D) Opium"],
+                answer: "A"
+            }
+        ];
+
+        function validateLogin() {
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+            if ((username === "mylove" && password === "070424") || (username === "a" && password === "1")) {
+                document.getElementById("login-container").classList.add("hidden");
+                document.getElementById("quiz-container").classList.remove("hidden");
+                document.getElementById("background-music").play(); // Play background music
+                showQuestion();
+            } else {
+                loginAttempts++;
+                if (loginAttempts >= 5) {
+                    alert("Hint: It is our anniversary date in this form mm/dd/yr");
+                } else {
+                    alert("Incorrect username or password! Try again.");
+                }
+            }
+        }
+
+        function showQuestion() {
+            const questionData = questions[questionIndex];
+            document.getElementById("question-text").textContent = questionData.question;
+            const options = document.querySelectorAll(".quiz-option");
+            options.forEach((option, index) => {
+                option.textContent = questionData.options[index];
+                option.onclick = () => checkAnswer(questionData.answer);
+            });
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            let timeLeft = questionIndex < 5 ? 15 : 10;
+            document.getElementById("timer").textContent = `Time left: ${timeLeft}s`;
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").textContent = `Time left: ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert("Time's up! Moving to the next question.");
+                    questionIndex++;
+                    if (questionIndex < questions.length) {
+                        showQuestion();
+                    } else {
+                        document.getElementById("quiz-container").classList.add("hidden");
+                        document.getElementById("score-container").classList.remove("hidden");
+                        document.getElementById("score-text").textContent = `Your score is ${score}/${questions.length}.`;
+                    }
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(correctAnswer) {
+            clearInterval(timer);
+            const selectedOption = event.target.textContent.charAt(0);
+            if (selectedOption === correctAnswer) {
+                alert("Correct! You're awesome! 🌻");
+                score++;
+            } else {
+                alert("Oops! Try again. 😢");
+            }
+            questionIndex++;
+            if (questionIndex < questions.length) {
+                showQuestion();
+            } else {
+                document.getElementById("quiz-container").classList.add("hidden");
+                document.getElementById("score-container").classList.remove("hidden");
+                document.getElementById("score-text").textContent = `Your score is ${score}/${questions.length}.`;
+            }
+        }
+
+        function createPetals() {
+            const totalPetals = 50;
+            const petalSizes = [20, 25, 30, 35, 40];
+            const container = document.getElementById('petal-container');
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+
+            for (let i = 0; i < totalPetals; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+
+                const size = petalSizes[Math.floor(Math.random() * petalSizes.length)];
+                petal.style.width = `${size}px`;
+                petal.style.height = `${size}px`;
+
+                const colorVariation = Math.floor(Math.random() * 30);
+                const yellowShade = `rgb(255, ${215 - colorVariation}, ${0 + colorVariation})`;
+                petal.style.backgroundColor = yellowShade;
+
+                const startPosition = Math.random();
+                if (startPosition < 0.7) {
+                    petal.style.top = `-${size}px`;
+                    petal.style.left = `${Math.random() * containerWidth}px`;
+                } else {
+                    petal.style.top = `${Math.random() * containerHeight / 2}px`;
+                    petal.style.left = startPosition < 0.85 ? `-${size}px` : `${containerWidth + size}px`;
+                }
+
+                const duration = 5 + Math.random() * 8;
+                const delay = Math.random() * 5;
+
+                petal.style.transition = `all ${duration}s linear ${delay}s`;
+
+                container.appendChild(petal);
+
+                setTimeout(() => {
+                    const targetX = Math.random() * containerWidth * 1.5;
+                    const targetY = containerHeight + size;
+                    const rotation = 1080 + Math.random() * 720;
+
+                    petal.style.transform = `translate(${targetX}px, ${targetY}px) rotate(${rotation}deg)`;
+                    petal.style.opacity = '0';
+                }, 10);
+
+                setTimeout(() => {
+                    container.removeChild(petal);
+                    createPetal();
+                }, (duration + delay) * 1000);
+            }
+        }
+
+        window.onload = createPetals;
+        setInterval(createPetals, 10000); // Loop the petal creation every 10 seconds
+    </script>
+</head>
+<body>
+    <div id="petal-container"></div>
+    <div id="login-container" class="container">
+        <img src="https://cdn-icons-png.flaticon.com/512/1993/1993750.png" alt="Sunflower Icon" class="cute-img">
+        <h2>🌻 Hello my love! 🌻</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button class="btn" onclick="validateLogin()">Log In</button>
+    </div>
+    
+    <div id="quiz-container" class="container hidden">
+        <h2>Fun Quiz Game!</h2>
+        <div id="timer" class="timer"></div>
+        <div id="question-text" class="question"></div>
+        <button class="btn quiz-option"></button>
+        <button class="btn quiz-option"></button>
+        <button class="btn quiz-option"></button>
+        <button class="btn quiz-option"></button>
+    </div>
+
+    <div id="score-container" class="container hidden">
+        <h2>Quiz Completed!</h2>
+        <div id="score-text" class="question"></div>
+        <button class="btn" onclick="location.reload()">Play Again</button>
+    </div>
+
+    <audio id="background-music" loop>
+        <source src="https://www.bensound.com/bensound-music/bensound-sunny.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+</body>
+</html>
